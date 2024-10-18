@@ -1,0 +1,16 @@
+# Node.js dependencies
+node_modules/
+
+# Log files
+*.log
+
+# Environment variables
+.env
+
+# Build directories
+dist/
+build/
+
+# Miscellaneous
+.DS_Store
+
