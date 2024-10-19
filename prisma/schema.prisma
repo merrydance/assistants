@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  phone         String    @unique
+  name          String
+  role          UserRole
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // 陪诊助手特有字段
+  city          String?
+  hospitals     String[]
+  services      String[]
+  hourlyRate    Float?
+  photo         String?
+  isVerified    Boolean   @default(false)
+  
+  // 关联字段
+  providedServices Service[]
+  bookings         Booking[]  @relation("PatientBookings")
+  reviews          Review[]   @relation("ReceivedReviews")
+  givenReviews     Review[]   @relation("GivenReviews")
+  medicalRecords   MedicalRecord[]
+}
+
+enum UserRole {
+  PATIENT
+  ASSISTANT
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  assistant   User     @relation(fields: [assistantId], references: [id])
+  assistantId String
+  description String
+  price       Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  bookings    Booking[]
+}
+
+model Booking {
+  id          String       @id @default(cuid())
+  patient     User         @relation("PatientBookings", fields: [patientId], references: [id])
+  patientId   String
+  service     Service      @relation(fields: [serviceId], references: [id])
+  serviceId   String
+  status      BookingStatus
+  startTime   DateTime
+  endTime     DateTime?
+  totalAmount Float
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  payment     Payment?
+  review      Review?
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  bookingId String   @unique
+  amount    Float
+  status    PaymentStatus
+  method    PaymentMethod
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  WECHAT
+  ALIPAY
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  bookingId   String   @unique
+  reviewer    User     @relation("GivenReviews", fields: [reviewerId], references: [id])
+  reviewerId  String
+  assistant   User     @relation("ReceivedReviews", fields: [assistantId], references: [id])
+  assistantId String
+  rating      Int
+  comment     String?
+  createdAt   DateTime @default(now())
+}
+
+model MedicalRecord {
+  id        String   @id @default(cuid())
+  patient   User     @relation(fields: [patientId], references: [id])
+  patientId String
+  hospital  String
+  doctor    String?
+  diagnosis String?
+  treatment String?
+  date      DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
