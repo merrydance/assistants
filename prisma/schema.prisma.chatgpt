@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  phoneNumber String   @unique
+  role       Role
+  name       String
+  avatarUrl  String?
+  createdAt  DateTime @default(now())
+
+  Assistant  Assistant?
+  Order      Order[]   @relation("PatientOrders")
+}
+
+model Assistant {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @unique
+  description   String
+  pricePerHour  Float
+  serviceArea   String
+  availableTimes Json
+  rating        Float    @default(0.0)
+  ratingCount   Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  user         User      @relation(fields: [userId], references: [id])
+  Orders       Order[]   @relation("AssistantOrders")
+}
+
+model Order {
+  id           Int      @id @default(autoincrement())
+  patientId    Int
+  assistantId  Int
+  serviceDetails String
+  totalPrice   Float
+  status       OrderStatus @default(PENDING)
+  createdAt    DateTime    @default(now())
+  completedAt  DateTime?
+
+  patient      User        @relation("PatientOrders", fields: [patientId], references: [id])
+  assistant    Assistant   @relation("AssistantOrders", fields: [assistantId], references: [id])
+  Payment      Payment[]
+  Review       Review?
+  Refund       Refund?
+}
+
+model Payment {
+  id          Int      @id @default(autoincrement())
+  orderId     Int
+  amount      Float
+  paymentMethod PaymentMethod
+  status      PaymentStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+
+  order       Order    @relation(fields: [orderId], references: [id])
+}
+
+model Review {
+  id           Int      @id @default(autoincrement())
+  orderId      Int      @unique
+  rating       Float
+  reviewText   String?
+  createdAt    DateTime @default(now())
+
+  order        Order    @relation(fields: [orderId], references: [id])
+}
+
+model Refund {
+  id           Int      @id @default(autoincrement())
+  orderId      Int      @unique
+  refundAmount Float
+  reason       String
+  status       RefundStatus @default(PENDING)
+  refundMethod PaymentMethod
+  refundTransactionId String?
+  createdAt    DateTime @default(now())
+  completedAt  DateTime?
+
+  order        Order    @relation(fields: [orderId], references: [id])
+}
+
+
+model SmsVerification {
+  id           Int      @id @default(autoincrement())
+  phoneNumber  String
+  code         String
+  sentAt       DateTime @default(now())
+  expiresAt    DateTime
+  verified     Boolean  @default(false)
+}
+
+enum Role {
+  PATIENT
+  ASSISTANT
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum RefundStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum PaymentMethod {
+  WECHAT
+  ALIPAY
+}

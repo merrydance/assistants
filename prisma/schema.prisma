@@ -29,6 +29,8 @@ model User {
   reviews          Review[]   @relation("ReceivedReviews")
   givenReviews     Review[]   @relation("GivenReviews")
   medicalRecords   MedicalRecord[]
+  
+  @@map("user")
 }
 
 enum UserRole {
@@ -46,6 +48,8 @@ model Service {
   updatedAt   DateTime @updatedAt
   
   bookings    Booking[]
+  
+  @@map("service")
 }
 
 model Booking {
@@ -63,6 +67,8 @@ model Booking {
   
   payment     Payment?
   review      Review?
+  
+  @@map("booking")
 }
 
 enum BookingStatus {
@@ -81,6 +87,8 @@ model Payment {
   method    PaymentMethod
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  @@map("payment")
 }
 
 enum PaymentStatus {
@@ -105,6 +113,8 @@ model Review {
   rating      Int
   comment     String?
   createdAt   DateTime @default(now())
+  
+  @@map("review")
 }
 
 model MedicalRecord {
@@ -118,6 +128,6 @@ model MedicalRecord {
   date      DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  @@map("medical_record")
 }
-
-
